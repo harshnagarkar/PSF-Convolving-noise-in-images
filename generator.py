@@ -1,10 +1,11 @@
+from scipy import fftpack
 import numpy as np
 from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
 from PIL import Image
 import psf 
-from scipy.signal import fftconvolve as conv2
-
+from scipy.signal import convolve as conv2
+# from scipy.signal import deconvolve
 
 def generate_psf(x, y, cmap='hot', savebin=False, savetif=True, savevol=False,
                 plot=True, **kwargs):
@@ -28,22 +29,34 @@ def generate_psf(x, y, cmap='hot', savebin=False, savetif=True, savevol=False,
     empsf = obsvol.empsf
     gauss = gauss2 = psf.PSF(psf.GAUSSIAN | psf.EXCITATION, **args)
 
-    # print(expsf)
-    # print(empsf)
-    # print(obsvol)
-    print(gauss)
-    print(gauss2)
+    print(obsvol)
     return (obsvol.data)
+
+
+# custom convolve and deconvolve function
+# def convolve(star, psf):
+#     star_fft = fftpack.fftshift(fftpack.fftn(star))
+#     psf_fft = fftpack.fftshift(fftpack.fftn(psf))
+#     return fftpack.fftshift(fftpack.ifftn(fftpack.ifftshift(star_fft*psf_fft)))
+
+
+# def deconvolve(star, psf):
+#     star_fft = fftpack.fftshift(fftpack.fftn(star))
+#     psf_fft = fftpack.fftshift(fftpack.fftn(psf))
+#     return fftpack.fftshift(fftpack.ifftn(fftpack.ifftshift(star_fft/psf_fft)))
 
 
 img = Image.open('elepant.png')
 img = img.convert('1', dither=Image.NONE)
 img = np.float32(img)
-img = conv2(img,generate_psf(img.shape[0],img.shape[1]),mode='same')
-
-# print(img.dtype)
-# img += np.random.poisson(img,img.shape)
-# img = gaussian_filter(img,sigma=2)
+psf = generate_psf(img.shape[0],img.shape[1])
+convimg = conv2(img,psf)
+img = convimg
+# recover,reminder = deconvolve(convimg,psf)
+# if recover == img:
+#     print("hell yeah")
+img += np.random.poisson(img,img.shape)
+img = gaussian_filter(img,sigma=2)
 
 
 plt.imshow(img)
