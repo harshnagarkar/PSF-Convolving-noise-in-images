@@ -47,7 +47,7 @@ def generate_psf(x, y, cmap='hot', savebin=False, savetif=True, savevol=False,
 
 
 img = Image.open('elepant.png')
-img = img.convert('1', dither=Image.NONE)
+img = img.convert('L', dither=Image.NONE)
 img = np.float32(img)
 psf = generate_psf(img.shape[0],img.shape[1])
 convimg = conv2(img,psf)
